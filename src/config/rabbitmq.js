@@ -80,7 +80,7 @@ async function connect() {
     // Start consuming messages
     startConsuming();
   } catch (error) {
-    console.error('Error connecting to RabbitMQ server:', error.message);
+    logger.error('Error connecting to RabbitMQ server:', error.message);
     // Retry connection after a delay
     setTimeout(connect, 5000);
   }
@@ -108,19 +108,15 @@ async function produce({ exchange, routingKey, message }) {
       { mandatory: true }
     );
 
-    if (isPublished) {
-      console.log('Message published:', message);
-    } else {
-      console.log('Message publication failed');
-    }
+    return isPublished;
   } catch (error) {
-    console.error('Error producing message:', error.message);
+    logger.error('Error producing message:', error.message);
     // Handle the error
   }
 }
 
 function handleConnectionError(error) {
-  console.error('RabbitMQ connection error:', error.message);
+  logger.error('RabbitMQ connection error:', error.message);
   // Handle the error or log it
 
   // Retry connection after a delay
@@ -128,7 +124,7 @@ function handleConnectionError(error) {
 }
 
 function handleConnectionClose() {
-  console.log('Connection to RabbitMQ server closed');
+  logger.log('Connection to RabbitMQ server closed');
   // Handle the connection close event
 
   // Retry connection after a delay

@@ -22,6 +22,7 @@ services:
     restart: unless-stopped
     volumes:
       - .:/app
+      - file_upload:/app/file_upload
     ports:
       - "${API_PORT}:3000"
     depends_on:
@@ -56,3 +57,4 @@ volumes:
   mariadb_data:
   rabbitmq_data:
   rabbitmq_logs:
+  file_upload:
