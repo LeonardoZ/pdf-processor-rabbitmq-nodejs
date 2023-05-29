@@ -93,27 +93,32 @@ function startConsuming() {
 
 async function produce({ exchange, routingKey, message }) {
   try {
-    const exchange = exchange;
-    const routingKey = routingKey;
-    const message = message;
-
     // Ensure the exchange exists
-    await channel.assertExchange(exchange, 'direct', { durable: true });
 
     // Publish the message with ack required
     const isPublished = channel.publish(
       exchange,
       routingKey,
-      Buffer.from(message),
+      Buffer.from(JSON.stringify(message)),
       { mandatory: true }
     );
 
     return isPublished;
   } catch (error) {
-    logger.error('Error producing message:', error.message);
+    logger.error('Error producing message: ' + error.message);
     // Handle the error
+    throw error;
   }
 }
+
+const producers = {
+  receiveFile: async ({ filename, mimetype, size }) =>
+    produce({
+      exchange: exchanges.pdf.name,
+      routingKey: 'pdf.parse',
+      message: { filename, mimetype, size },
+    }),
+};
 
 function handleConnectionError(error) {
   logger.error('RabbitMQ connection error:', error.message);
@@ -124,7 +129,7 @@ function handleConnectionError(error) {
 }
 
 function handleConnectionClose() {
-  logger.log('Connection to RabbitMQ server closed');
+  logger.info('Connection to RabbitMQ server closed');
   // Handle the connection close event
 
   // Retry connection after a delay
@@ -137,4 +142,4 @@ async function finish() {
 }
 
 // Start the initial connection
-module.exports = { connect, finish };
+module.exports = { connect, finish, producers };
