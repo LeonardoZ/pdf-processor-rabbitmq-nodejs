@@ -1,0 +1,58 @@
+version: '3'
+services:
+  db:
+    image: mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASS}
+      MYSQL_DATABASE: ${MYSQL_DB}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASS}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+    networks:
+      - rabbitmq_go_net
+
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    restart: unless-stopped
+    volumes:
+      - .:/app
+    ports:
+      - "${API_PORT}:3000"
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - rabbitmq_go_net
+
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: 'rabbitmq'
+    build:
+      context: .
+      dockerfile: Dockerfile.rabbitmq
+    restart: unless-stopped
+    ports:
+        - ${RABBIT_PORT}:5672
+        - ${RABBIT_ADMIN_PORT}:15672
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBIT_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBIT_PASS}
+    volumes:
+        - rabbitmq_data:/rabbitmq/data/:/var/lib/rabbitmq/
+        - rabbitmq_logs:/rabbitmq/log/:/var/log/rabbitmq
+    networks:
+        - rabbitmq_go_net
+
+networks:
+  rabbitmq_go_net:
+
+volumes:
+  mariadb_data:
+  rabbitmq_data:
+  rabbitmq_logs:
