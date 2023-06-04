@@ -1,6 +1,6 @@
 var express = require('express');
 var logger = require('morgan');
-var rabbitMq = require('./config/rabbitmq');
+var producer = require('./services/producers');
 
 var indexRouter = require('./routes/index');
 var jobsRouter = require('./routes/jobs');
@@ -13,12 +13,11 @@ app.use(express.json());
 app.use('/', indexRouter);
 app.use('/jobs', jobsRouter);
 
-rabbitMq.connect();
+producer.connect();
 
 ['SIGINT', 'SIGTERM'].forEach((signal) =>
   process.once(signal, async () => {
-    console.log('finished');
-    await rabbitMq.finish();
+    await producer.disconnect();
   })
 );
 

@@ -1,6 +1,6 @@
 const express = require('express');
 const upload = require('../config/upload');
-const { produce, producers } = require('../config/rabbitmq');
+const { producers } = require('../services/producers');
 const router = express.Router();
 
 /* GET users listing. */
