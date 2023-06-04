@@ -122,7 +122,7 @@ class RabbitMqConnection {
       // Ensure the exchange exists
 
       // Publish the message with ack required
-      const continueToPush = await this.channel.publish(
+      const continueToPush = this.channel.publish(
         exchange,
         routingKey,
         Buffer.from(JSON.stringify(message)),
