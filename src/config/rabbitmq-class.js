@@ -1,3 +1,4 @@
+const { handle } = require('express/lib/router');
 const logger = require('./logs');
 
 require('dotenv').config();
@@ -69,6 +70,7 @@ class RabbitMqConnection {
         this.channel = await this.connection.createConfirmChannel();
       } else {
         this.channel = await this.connection.createChannel();
+        this.channel.prefetch(10);
       }
 
       // configures channel for publish confirms
@@ -99,6 +101,10 @@ class RabbitMqConnection {
       // Retry connection after a delay
       setTimeout(this.connect.bind(this), 5000);
     }
+  }
+
+  consume({ queue, handleFn }) {
+    this.channel.consume(queue, () => handleFn(this.channel), { noAck: false });
   }
 
   handleConnectionError(error) {
