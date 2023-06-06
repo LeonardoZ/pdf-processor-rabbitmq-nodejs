@@ -3,7 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "npx nodemon ./src/bin/www.js"
+    "start": "npx nodemon ./src/bin/www.js",
+    "start-worker": "npx nodemon ./src/bin/worker.js"
   },
   "dependencies": {
     "amqplib": "^0.10.3",

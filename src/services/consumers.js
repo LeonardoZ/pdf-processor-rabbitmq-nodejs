@@ -1,6 +1,6 @@
-const { RabbitMqConnection, exchanges } = require('../config/rabbitmq-class');
+const { RabbitMqConnection } = require('../config/rabbitmq-class');
 
-const connection = new RabbitMqConnection(true);
+const connection = new RabbitMqConnection(false);
 
 function disconnect() {
   return connection.finish();
@@ -10,6 +10,4 @@ async function start() {
   await connection.connect();
 }
 
-function handleReceiveFileMessage(channel) {}
-
-module.exports = { connect, disconnect };
+module.exports = { start, disconnect };

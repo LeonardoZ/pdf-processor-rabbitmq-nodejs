@@ -3,6 +3,7 @@ services:
   db:
     image: mariadb
     restart: unless-stopped
+    container_name: db
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASS}
       MYSQL_DATABASE: ${MYSQL_DB}
@@ -19,12 +20,28 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.api
+    container_name: api
     restart: unless-stopped
     volumes:
       - .:/app
       - file_upload:/app/file_upload
     ports:
       - "${API_PORT}:3000"
+    depends_on:
+      - db
+      - rabbitmq
+    networks:
+      - rabbitmq_go_net
+  
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.worker
+    container_name: worker
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - file_upload:/app/file_upload
     depends_on:
       - db
       - rabbitmq

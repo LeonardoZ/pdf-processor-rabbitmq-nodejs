@@ -4,6 +4,10 @@ const logger = require('./logs');
 require('dotenv').config();
 
 const amqp = require('amqplib');
+const {
+  handleReceiveFileMessage,
+} = require('../services/handlers/receive-file');
+const { handleParseFile } = require('../services/handlers/parse-file');
 
 const connectionOptions = {
   protocol: 'amqp',
@@ -36,17 +40,20 @@ const queues = {
     name: 'q-pdf-receive-file',
     binding: 'pdf.receive-file',
     exchange: 'ex-pdf',
+    handler: handleReceiveFileMessage,
     dead_letter_exchange: 'dlx-pdf-receive-files',
   },
   receive_file_dlq: {
     name: 'dlq-pdf-receive-file',
     binding: '#',
+    handler: null,
     exchange: 'dlx-pdf-receive-files',
   },
   parse_pdf: {
     name: 'q-pdf-parse',
     binding: 'pdf.parse',
     exchange: 'ex-pdf',
+    handler: handleParseFile,
     dead_letter_exchange: 'dlx-pdf-receive-files',
   },
 };
@@ -70,7 +77,6 @@ class RabbitMqConnection {
         this.channel = await this.connection.createConfirmChannel();
       } else {
         this.channel = await this.connection.createChannel();
-        this.channel.prefetch(10);
       }
 
       // configures channel for publish confirms
@@ -92,6 +98,20 @@ class RabbitMqConnection {
         });
         await this.channel.bindQueue(queue.name, queue.exchange, queue.binding);
         logger.info(`Asserted queue ${queue.name}`);
+        if (!this.isProducer && queue.handler) {
+          this.channel.consume(
+            queue.name,
+            (message) =>
+              queue.handler(
+                this.channel,
+                JSON.parse(message.content.toString()),
+                message
+              ),
+            {
+              noAck: false,
+            }
+          );
+        }
       }
 
       logger.info('Connected to RabbitMQ server');
@@ -104,7 +124,13 @@ class RabbitMqConnection {
   }
 
   consume({ queue, handleFn }) {
-    this.channel.consume(queue, () => handleFn(this.channel), { noAck: false });
+    this.channel.consume(
+      queue,
+      ({ content }) => handleFn(this.channel, JSON.parse(content.toString())),
+      {
+        noAck: false,
+      }
+    );
   }
 
   handleConnectionError(error) {
