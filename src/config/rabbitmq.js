@@ -11,7 +11,7 @@ const { handleParseFile } = require('../services/consumers/parse-file');
 const connectionOptions = {
   protocol: 'amqp',
   hostname: `${process.env.RABBIT_URL}`,
-  heartbeat: 5,
+  heartbeat: 10,
   port: process.env.RABBIT_PORT,
   username: process.env.RABBIT_USER,
   password: process.env.RABBIT_PASS,
@@ -113,14 +113,17 @@ async function connect(shouldConsume) {
             deadLetterExchange: queue.dead_letter_exchange,
             deadLetterRoutingKey: queue.name,
           };
+
       await channel.assertQueue(queue.name, {
         durable: true,
         ...deadLetterOpts,
       });
+
       await channel.bindQueue(queue.name, queue.exchange, queue.binding);
       logger.info(`Asserted queue ${queue.name}`);
       if (shouldConsume && queue.handler) {
-        channel.consume(
+        channel.prefetch(1);
+        await channel.consume(
           queue.name,
           (message) =>
             queue.handler(

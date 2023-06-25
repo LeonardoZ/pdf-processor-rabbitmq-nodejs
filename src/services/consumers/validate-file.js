@@ -25,8 +25,7 @@ async function handleValidateFileMessage(
     );
     return;
   }
-  console.log(producers);
-  await producers.parseFile(content.filename);
+  await producers.parseFile({ filename: content.filename });
   channel.ack(originalMessage);
   logger.info(
     '#_handle_validate_file' +
