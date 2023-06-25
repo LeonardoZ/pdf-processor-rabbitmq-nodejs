@@ -1,13 +1,16 @@
-var express = require('express');
-var logger = require('morgan');
+const express = require('express');
+const logger = require('morgan');
+const winstonLogger = require('./config/logs');
 require('express-async-errors');
 
-var producer = require('./services/producers');
+const { connect, disconnect } = require('./config/rabbitmq');
 
-var indexRouter = require('./routes/index');
-var jobsRouter = require('./routes/jobs');
+const indexRouter = require('./routes/index');
+const jobsRouter = require('./routes/jobs');
 
-var app = express();
+connect(false);
+
+const app = express();
 
 app.use(logger('dev'));
 app.use(express.json());
@@ -15,16 +18,16 @@ app.use(express.json());
 app.use('/', indexRouter);
 app.use('/jobs', jobsRouter);
 app.use((error, req, res, next) => {
+  console.log(error);
+  winstonLogger.error(error);
   res
     .status(500)
     .json({ error: true, message: error.message, stacj: error.stack });
 });
 
-producer.connect();
-
 ['SIGINT', 'SIGTERM'].forEach((signal) =>
   process.once(signal, async () => {
-    await producer.disconnect();
+    await disconnect();
   })
 );
 
