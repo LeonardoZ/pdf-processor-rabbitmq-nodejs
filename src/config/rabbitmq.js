@@ -86,7 +86,7 @@ const producers = {
 let connection = null;
 let channel = null;
 
-async function connect(shouldConsume) {
+async function connectRabbitmq(shouldConsume) {
   try {
     connection = await amqp.connect(connectionOptions, socketOptions);
     connection.on('error', handleConnectionError);
@@ -185,14 +185,14 @@ async function produce({ exchange, routingKey, message }) {
   }
 }
 
-async function disconnect() {
+async function disconnectRabbitmq() {
   await channel.close();
   await connection.close();
 }
 
 // Start the initial connection
 module.exports = {
-  disconnect,
-  connect,
+  disconnectRabbitmq,
+  connectRabbitmq,
   producers,
 };

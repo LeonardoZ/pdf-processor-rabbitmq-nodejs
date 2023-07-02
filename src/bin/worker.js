@@ -1,12 +1,15 @@
 const logger = require('../config/logs');
-const { connect, disconnect } = require('../config/rabbitmq');
+const { connectRabbitmq, disconnectRabbitmq } = require('../config/rabbitmq');
 
-connect(true);
+async function main() {
+  logger.info('Starting worker');
+  connectRabbitmq();
+}
 
-logger.info('Starting worker');
+main().catch((err) => logger.error('Failed to start: ' + err.stack));
 
 ['SIGINT', 'SIGTERM'].forEach((signal) =>
   process.once(signal, async () => {
-    await disconnect();
+    await disconnectRabbitmq();
   })
 );
