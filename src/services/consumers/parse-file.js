@@ -5,7 +5,7 @@ const pdf = require('pdf-parse');
 async function handleParseFile(channel, content, originalMessage, producers) {
   let dataBuffer;
   try {
-    dataBuffer = await fs.readFile(content.filename || 'nopt');
+    dataBuffer = await fs.readFile('file_upload/' + content.filename || 'nopt');
   } catch (error) {
     logger.error('File not found');
     channel.reject(originalMessage, false);
@@ -13,6 +13,7 @@ async function handleParseFile(channel, content, originalMessage, producers) {
   }
 
   try {
+    console.log(content);
     const data = await pdf(dataBuffer);
 
     // number of pages
@@ -27,7 +28,7 @@ async function handleParseFile(channel, content, originalMessage, producers) {
     // check https://mozilla.github.io/pdf.js/getting_started/
     console.log(data.version);
     // PDF text
-    console.log(data.text);
+    //console.log(data.text);
   } catch (error) {
     logger.error('Failed to read PDF');
     channel.reject(originalMessage, false);
