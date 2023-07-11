@@ -11,7 +11,7 @@ const { handleParseFile } = require('../services/consumers/parse-file');
 const connectionOptions = {
   protocol: 'amqp',
   hostname: `${process.env.RABBIT_URL}`,
-  heartbeat: 10,
+  heartbeat: 20,
   port: process.env.RABBIT_PORT,
   username: process.env.RABBIT_USER,
   password: process.env.RABBIT_PASS,
@@ -122,7 +122,7 @@ async function connectRabbitmq(shouldConsume) {
       await channel.bindQueue(queue.name, queue.exchange, queue.binding);
       logger.info(`Asserted queue ${queue.name}`);
       if (shouldConsume && queue.handler) {
-        channel.prefetch(1);
+        await channel.prefetch(1);
         await channel.consume(
           queue.name,
           (message) =>
@@ -143,7 +143,7 @@ async function connectRabbitmq(shouldConsume) {
   } catch (error) {
     logger.error('Error connecting to RabbitMQ server:' + error.message);
     // Retry connection after a delay
-    setTimeout(connect, 5000);
+    setTimeout(connectRabbitmq, 5000);
   }
 }
 
@@ -152,7 +152,7 @@ function handleConnectionError(error) {
   // Handle the error or log it
 
   // Retry connection after a delay
-  setTimeout(connect, 5000);
+  setTimeout(connectRabbitmq, 5000);
 }
 
 function handleConnectionClose() {
@@ -160,7 +160,7 @@ function handleConnectionClose() {
   // Handle the connection close event
 
   // Retry connection after a delay
-  setTimeout(connect, 5000);
+  setTimeout(connectRabbitmq, 5000);
 }
 
 async function produce({ exchange, routingKey, message }) {

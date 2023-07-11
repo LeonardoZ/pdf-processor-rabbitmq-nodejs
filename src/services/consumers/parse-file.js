@@ -1,6 +1,7 @@
 const logger = require('../../config/logs');
 const fs = require('fs/promises');
 const pdf = require('pdf-parse');
+const { PdfData } = require('../../model');
 
 async function handleParseFile(channel, content, originalMessage, producers) {
   let dataBuffer;
@@ -13,7 +14,6 @@ async function handleParseFile(channel, content, originalMessage, producers) {
   }
 
   try {
-    console.log(content);
     const data = await pdf(dataBuffer);
 
     // number of pages
@@ -29,9 +29,19 @@ async function handleParseFile(channel, content, originalMessage, producers) {
     console.log(data.version);
     // PDF text
     //console.log(data.text);
+
+    const pdf = new PdfData({
+      name: content.filename,
+      page_num: data.numpages,
+      info: data.info,
+    });
+    await pdf.save();
+    await channel.ack(originalMessage);
+    console.log('Message acked');
   } catch (error) {
     logger.error('Failed to read PDF');
-    channel.reject(originalMessage, false);
+    console.log('Message received');
+    await channel.reject(originalMessage, false);
     return;
   }
 }
