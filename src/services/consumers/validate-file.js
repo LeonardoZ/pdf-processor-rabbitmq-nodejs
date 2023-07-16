@@ -21,7 +21,7 @@ async function handleValidateFileMessage(
   if (content.size > limit) {
     channel.nack(originalMessage, false, false);
     logger.info(
-      '#_handle_validate_file' + `File exceeds file limt ${limit} bytes`
+      '#_handle_validate_file' + ` File exceeds file limt ${limit} bytes`
     );
     return;
   }
@@ -29,7 +29,7 @@ async function handleValidateFileMessage(
   channel.ack(originalMessage);
   logger.info(
     '#_handle_validate_file' +
-      `File ${content.filename} is valid. Produced parse messsage`
+      ` File ${content.filename} is valid. Produced parse messsage`
   );
   // post message to next queue
 }

@@ -5,6 +5,7 @@ require('express-async-errors');
 
 const indexRouter = require('./routes/index');
 const jobsRouter = require('./routes/jobs');
+const pdfDataRouter = require('./routes/pdf-data');
 
 const app = express();
 
@@ -13,6 +14,7 @@ app.use(express.json());
 
 app.use('/', indexRouter);
 app.use('/jobs', jobsRouter);
+app.use('/pdf-data', pdfDataRouter);
 app.use((error, req, res, next) => {
   console.log(error);
   winstonLogger.error(error);
